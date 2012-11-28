@@ -2,13 +2,11 @@
 
 (struct atomic (sem ref))
 
-(define
-  (make-atomic ref)
+(define (make-atomic ref)
   (atomic (make-semaphore 1) ref)
   )
 
-(define
-  (CAS ref exp new)
+(define (CAS ref exp new)
   (define 
     (cas)
     (if (equal? (atomic-ref ref) exp)

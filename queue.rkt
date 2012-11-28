@@ -7,8 +7,7 @@
 ;; constructor extending an existing queue
 (struct enq (val tail))
 
-(define
-  (get-first queue)
+(define (get-first queue)
   (match queue
     [(bgn) (#f)]
     [(enq val tail)
@@ -18,8 +17,7 @@
     )
   )
 
-(define
-  (deq queue)
+(define (deq queue)
   (match queue
     [(bgn) queue]
     [(enq val tail)

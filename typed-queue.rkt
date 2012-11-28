@@ -10,8 +10,7 @@
 (struct: (A) enq ([val : A] [tail : (Queue A)]))
 
 (: get-first (All (A) (Queue A) -> (U A #f)))
-(define
-  (get-first queue)
+(define (get-first queue)
   (match queue
     [(bgn) #f]
     [(enq val tail)
@@ -22,8 +21,7 @@
   )
 
 (: deq (All (A) (Queue A) -> (Queue A)))
-(define
-  (deq queue)
+(define (deq queue)
   (match queue
     [(bgn) queue] ;; nothing to remove
     [(enq val tail)
