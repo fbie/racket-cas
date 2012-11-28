@@ -25,7 +25,7 @@
 (define
   (deq queue)
   (match queue
-    [(bgn) (bgn)] ;; nothing to remove
+    [(bgn) queue] ;; nothing to remove
     [(enq val tail)
      (match tail
        [(bgn) tail] ;; remove the first item in queue

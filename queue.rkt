@@ -21,7 +21,7 @@
 (define
   (deq queue)
   (match queue
-    [(bgn) (#f)]
+    [(bgn) queue]
     [(enq val tail)
      (match tail
        [(bgn) tail] ;; remove the first item in queue
