@@ -12,8 +12,9 @@
   (define 
     (cas)
     (if (equal? (atomic-ref ref) exp)
-      [atomic (atomic-sem ref) new]
-      [#f]
-      ))
+      (atomic (atomic-sem ref) new)
+      #f
+      )
+    )
   (call-with-semaphore (atomic-sem ref) cas)
   )
