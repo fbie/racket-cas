@@ -257,8 +257,9 @@ key "michael_simple_1996"
  in Racket.
  The topics being combined here are gradual typing and non-blocking concurrency.
  This is especially interesting, as Racket does not feature a dedicated
- CAS operation and as it is not possible to update fields of a struct but
- only to create a copy of a struct where the original fields have been altered.
+ CAS operation executed in hardware.
+ Therefore, the first step is to show the implementation of a software CAS
+ in Racket.
 \end_layout
 
 \begin_layout Standard
