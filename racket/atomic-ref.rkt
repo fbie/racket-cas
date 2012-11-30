@@ -15,3 +15,7 @@
     )
   (call-with-semaphore (atomic-sem ref) cas)
   )
+
+(provide make-atomic)
+(provide atomic-ref)
+(provide CAS)
