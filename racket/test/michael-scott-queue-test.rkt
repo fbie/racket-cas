@@ -28,13 +28,14 @@
   func
   )
 
+;; test traditional threading
 (define (run-n-threads n f)
   (if (> n 0)
       (cons (thread f) (run-n-threads (sub1 n) f))
       null)
   )
 
-(define (run-tests n f s q)
+(define (run-thread-tests n f s q)
   (let ([chunk (/ s n)])
     (run-n-threads n (func-of-size f chunk q))
     )
@@ -46,17 +47,16 @@
     (while (not (thread-dead? (car threads)))
            void))
   )
-
+  
 (define (all-tests t s)
   (define q (make-msq))
-  (block-run (run-tests t enqueue-each s q))
+  (block-run (run-thread-tests t enqueue-each s q))
   (check-eq? (size q) test-size)
-  (block-run (run-tests t dequeue-each s q))
+  (block-run (run-thread-tests t dequeue-each s q))
   (check-eq? (size q) 0)
-  (block-run (run-tests t enq-deq-each s q))
+  (block-run (run-thread-tests t enq-deq-each s q))
   (check-eq? (size q) 0)
   )
 
 (define test-size 1000000)
-
 (all-tests 4 test-size)
