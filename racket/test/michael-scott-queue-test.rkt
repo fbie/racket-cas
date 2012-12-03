@@ -3,7 +3,7 @@
 (require rackunit)
 (require (planet dyoo/while-loop))
 
-(require "michael-scott-queue.rkt")
+(require "../michael-scott-queue.rkt")
 
 (define (enqueue-each n q)
   (enqueue n q)
