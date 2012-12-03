@@ -4,17 +4,16 @@
 (require "atomic-ref.rkt")
 
 ;; the node type of which the queue actually consists
-(struct node (value [next #:mutable]))
+(struct node (value next))
 
 (define (len qn)
   (if (not (equal? qn void))
       (add1 (len (atomic-ref (node-next qn))))
       0)
   )
-  
 
 ;; a container type for the linked list
-(struct msq (head [tail #:mutable]))
+(struct msq (head tail))
 
 (define (make-msq)
   (let ([head (node void (make-atomic void))])
@@ -36,6 +35,7 @@
   )
 
 (define (dequeue q)
+  (define return void)
   (while #t
          (let* [(head (msq-head q))
                 (tail (msq-tail q))
@@ -43,10 +43,13 @@
            (when (equal? head (msq-head q))
              (if (equal? (atomic-ref head) (atomic-ref tail))
                  (if (equal? next void)
-                     (break) ;; how to return #f?
+                     (break)
                      (CAS (msq-tail q) tail next))
                  (when (CAS (msq-head q) (atomic-ref head) next)
-                   (break)))))) ;; how to return #t?
+                   ((set! return (node-value next))
+                    (break))
+                   ))))) ;; how to return #t?
+  return
   )
   
 (define (size q)
