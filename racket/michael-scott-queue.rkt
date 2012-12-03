@@ -55,3 +55,8 @@
 (define (size q)
   (len (atomic-ref (node-next (atomic-ref (msq-head q)))))
   )
+
+(provide make-msq)
+(provide enqueue)
+(provide dequeue)
+(provide size)
