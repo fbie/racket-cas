@@ -3,7 +3,7 @@
 (require "atomic-ref.rkt")
 
 ;; the node type of which the queue actually consists
-(struct node (value [next #:mutable]))
+(struct node (value next))
 
 (define (len qn)
   (if (not (equal? qn void))
@@ -12,7 +12,7 @@
   )
   
 ;; a container type for the linked list
-(struct msq ([head #:mutable]))
+(struct msq (head))
 
 (define (make-msq)
   (let ([head (node void (make-atomic void))])
