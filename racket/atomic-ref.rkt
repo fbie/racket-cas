@@ -1,9 +1,11 @@
 #lang racket
 
-(struct atomic (sem [ref #:mutable]))
+(require racket/future)
+
+(struct atomic (sem fsem [ref #:mutable]))
 
 (define (make-atomic ref)
-  (atomic (make-semaphore 1) ref)
+  (atomic (make-semaphore 1) (make-fsemaphore 1) ref)
   )
 
 (define (CAS ref exp new)
@@ -13,7 +15,10 @@
       #f
       )
     )
-  (call-with-semaphore (atomic-sem ref) cas)
+  (fsemaphore-wait (atomic-fsem ref))
+  (let ([res (call-with-semaphore (atomic-sem ref) cas)])
+    (fsemaphore-post (atomic-fsem ref))
+    res)
   )
 
 (provide make-atomic)
