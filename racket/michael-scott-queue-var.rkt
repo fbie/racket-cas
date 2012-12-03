@@ -1,6 +1,5 @@
 #lang racket
 
-(require (planet dyoo/while-loop))
 (require "atomic-ref.rkt")
 
 ;; the node type of which the queue actually consists
