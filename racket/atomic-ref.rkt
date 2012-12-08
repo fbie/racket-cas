@@ -24,8 +24,6 @@
 
 (provide
  (contract-out
-  [struct atomic ((sem semaphore?)
-                  (fsem fsemaphore?)
-                  (ref any/c))]
+  [atomic-ref (-> atomic? any/c)]
   [make-atomic (-> any/c atomic?)]
   [CAS (-> atomic? any/c any/c boolean?)]))

@@ -32,6 +32,7 @@
                    ((CAS (msq-tail q) (atomic-ref tail) node)
                     (break))
                    (CAS (msq-tail q) tail next))))))
+  (void)
   )
 
 (define (dequeue q)
@@ -56,7 +57,9 @@
   (len (atomic-ref (node-next (atomic-ref (msq-head q)))))
   )
 
-(provide make-msq)
-(provide enqueue)
-(provide dequeue)
-(provide size)
+(provide
+ (contract-out
+  [make-msq (-> msq?)]
+  [enqueue (-> any/c msq? void?)]
+  [dequeue (-> msq? (or/c any/c void?))]
+  [size (-> msq? integer?)]))
