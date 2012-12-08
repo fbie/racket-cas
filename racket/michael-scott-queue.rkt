@@ -29,7 +29,7 @@
            (when (equal? tail (msq-tail q))
              (when (equal? next void)
                (if (CAS (node-next (atomic-ref tail)) next node)
-                   ((CAS (msq-tail q) (atomic-ref tail) node) ;; moved from the end of the function to here for convenience
+                   ((CAS (msq-tail q) (atomic-ref tail) node)
                     (break))
                    (CAS (msq-tail q) tail next))))))
   )
@@ -48,7 +48,7 @@
                  (when (CAS (msq-head q) (atomic-ref head) next)
                    ((set! return (node-value next))
                     (break))
-                   ))))) ;; how to return #t?
+                   )))))
   return
   )
   

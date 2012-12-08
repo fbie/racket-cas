@@ -10,10 +10,11 @@
 
 (define (CAS ref exp new)
   (define (cas)
+    (define success #t)
     (if (equal? (atomic-ref ref) exp)
-      [and (set-atomic-ref! ref new) #t]
-      #f
-      )
+      (set-atomic-ref! ref new)
+      (set! success #f))
+      success
     )
   (fsemaphore-wait (atomic-fsem ref))
   (let ([res (call-with-semaphore (atomic-sem ref) cas)])
