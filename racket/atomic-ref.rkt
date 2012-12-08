@@ -22,13 +22,10 @@
     res)
   )
 
-(provide make-atomic)
-(provide atomic-ref)
-(provide CAS)
-
-;;(provide
-;; (contract-out
-;;  [struct atomic ((sem make-semaphore)
-;;                  (ref any/c))]
-;;  [make-atomic (-> any/c atomic)]
-;;  [CAS (-> atomic any/c any/c)]))
+(provide
+ (contract-out
+  [struct atomic ((sem semaphore?)
+                  (fsem fsemaphore?)
+                  (ref any/c))]
+  [make-atomic (-> any/c atomic?)]
+  [CAS (-> atomic? any/c any/c boolean?)]))
