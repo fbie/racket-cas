@@ -9,6 +9,8 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 
+\usepackage{graphicx}
+
 \usepackage[unicode=true,
  bookmarks=true,bookmarksnumbered=false,bookmarksopen=false,
  breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=true]
@@ -192,7 +194,7 @@ implementation to make it more useful, opposing \textsc{Dequeue} (see
 Fig. \ref{fig:msq-enqueue-untyped} for the implementation).
 
 \begin{figure}[t]
-  \lstinputlisting[linerange={24-35}]{../racket/michael-scott-queue.rkt}
+  \lstinputlisting[linerange={24-36}]{../racket/michael-scott-queue.rkt}
   \caption{Untyped implementation of \textsc{Enqueue} of the Michael-Scott
     Queue.}
   \label{fig:msq-enqueue-untyped}
@@ -233,6 +235,14 @@ step is great in comparison to the original proposed implementation.
 
 \section{Discussion}
 
+\begin{figure}[t]
+  \begin{center}
+    \includegraphics[bb=0 0 892 528, scale=0.4]{images/futures_visualizer_untyped.png}
+  \end{center}
+  \caption{Screenshot from the Future Visualizer showing the execution timeline
+    for the untyped Michael-Scott Queue implementation.}
+  \label{fig:untyped-visualizer}
+\end{figure}
 
 \section{Conclusion and Future Work}
 
