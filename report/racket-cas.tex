@@ -9,7 +9,10 @@
 \usepackage{fancyhdr}
 \pagestyle{fancy}
 
-\usepackage{hyperref}
+\usepackage[unicode=true,
+ bookmarks=true,bookmarksnumbered=false,bookmarksopen=false,
+ breaklinks=false,pdfborder={0 0 1},backref=false,colorlinks=true]
+ {hyperref}
 \hypersetup{pdftitle={Implementing Quantified Expressions for OpenJML},
   pdfauthor={Florian Biermann}, pdfsubject={SPLG Project Spring E2012},
   pdfkeywords={Racket, Gradual typing, Lock-free concurrency}}
@@ -118,7 +121,18 @@ making CAS save.
 
 Each time CAS is executed on an instance of \emph{atomic}, it calls
 an internal method, that performs the actual CAS with \emph{call-with-semaphore},
-supplying the semaphore field of the reference.
+supplying the semaphore field of the reference. \emph{call-with-semaphore} is a
+shorthand for waiting and taking the lock on the semaphore, then execute code,
+and finally release the lock again.
+
+Since Racket distinguishes between scheduled Threading and true parallelism,
+another kind of semaphore needs to be added. \emph{fsemaphore} is a
+parallel-safe semaphore that locks the execution of ``futures''
+\footnote{See \url{http://docs.racket-lang.org/reference/futures.html} for
+  further details on futures in Racket.}, which is the Racket implementation of
+parallel threads. This semaphore is assigned to the field \emph{fsem} on
+\emph{atomic} and its locking mechanism encloses the traditional semaphore. This
+ensures that \emph{atomic} is safe for single- and multi-processor parallelism.
 
 The only publicly provided functions from this implementation are
 \begin{itemize}
@@ -177,7 +191,7 @@ especially true for \textsc{Enqueue}, as there is no need to alter the
 implementation to make it more useful, opposing \textsc{Dequeue} (see
 Fig. \ref{fig:msq-enqueue-untyped} for the implementation).
 
-\begin{figure}[b]
+\begin{figure}[t]
   \lstinputlisting[linerange={24-35}]{../racket/michael-scott-queue.rkt}
   \caption{Untyped implementation of \textsc{Enqueue} of the Michael-Scott
     Queue.}
@@ -185,6 +199,14 @@ Fig. \ref{fig:msq-enqueue-untyped} for the implementation).
 \end{figure}
 
 \subsection{Michael-Scott Queue Variant}
+
+
+\begin{figure}[t]
+  \lstinputlisting[linerange={23-43}]{../racket/michael-scott-queue-var.rkt}
+  \caption{Untyped implementation of the Michael-Scott Queue variant by Turon et
+    al.}
+  \label{fig:msq-var-untyped}
+\end{figure}
 
 This variant of the Michael-Scott Queue was introduced by Turon et
 al. \cite{turon_logical_2012}. The main difference is, that there is no tail
@@ -194,16 +216,19 @@ a node is altered after it was changed from \emph{void} to an actual succeeding
 node, even if it got dequeued. This is elaborated further in
 \cite{turon_logical_2012}.
 
-The implementation is purely functional, not using any kind of while-construct
-but only recursive calls (see Sec. \ref{msq-var-code} for code).  This is
-possible as there is no tail in this variant which could be lagging behind. That
-means, there is no tail that needs to be updated at any point.
+The implementation is purely functional, as the pseudo-code of the variant
+itself suggests, not using any kind of while-construct but only recursive
+calls. This is possible as there is no tail in this variant which could be
+lagging behind, making updating the tail a redundant task. The implementation
+is illustrated in Fig \ref{fig:msq-var-untyped}.
 
-While this is easier to code, the impact on performance might be high compared
-to the original proposed implementation.
+While this is easier to code, the performance cost for finding the tail in each
+step is great in comparison to the original proposed implementation.
 
 
 \subsection{Typed Version}
+
+
 
 
 \section{Discussion}
@@ -211,39 +236,10 @@ to the original proposed implementation.
 
 \section{Conclusion and Future Work}
 
-\bibliographystyle{abbrv}
-\bibliography{SPLG}
+\bibliographystyle{plain}
+\bibliography{SPLG.bib}
 
-
-\appendix
-
-\section{Racket Implementations}
-
-
-\subsection{Atomic Reference \label{atomic-code}}
-
-
-
-
-\subsection{Michael-Scott Queue \label{msq-code}}
-
-\lstinputlisting{../racket/michael-scott-queue.rkt}
-
-
-\subsection{Michael-Scott Queue Variant\label{msq-var-code}}
-
-\lstinputlisting{../racket/michael-scott-queue-var.rkt}
-
-
-\section{Typed-Racket Implementations}
-
-
-\subsection{Atomic Reference}
-
-%\lstinputlisting{../typed/atomic-ref.rkt}
-
-
-\subsection{Michael-Scott Queue}
-
-%\lstinputlisting{../typed/michael-scott-queue.rkt}
 \end{document}
+
+
+
