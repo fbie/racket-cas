@@ -30,7 +30,7 @@
     (let* [(node (node value (make-atomic (void))))
            (tail (cast (atomic-ref (msq-tail q)) Node))
            (next (atomic-ref (node-next tail)))]
-      (if (equal? tail (msq-tail q))
+      (if (equal? tail (atomic-ref (msq-tail q)))
         (if (equal? next (void))
           (if (CAS (node-next tail) next node)
               (let ([a (CAS (msq-tail q) tail node)])
