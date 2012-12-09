@@ -244,6 +244,33 @@ step is great in comparison to the original proposed implementation.
   \label{fig:untyped-visualizer}
 \end{figure}
 
+According to Swaine et al. \cite{swaine_seeing_2012}, programms written in Typed
+Racket have advantages over programms written in plain Racket, when it comes to
+parallelism. When a parallel program is compiled, the Racket compiler determines
+the safety of the code for parallel execution. If the program does not fulfill
+all requirements, a so called ``slow path'' will be triggered\footnote{See
+  \url{} for details.}, leading
+eventually towards sequential execution with the additional overhead paid for
+managing parallel processes on top.
+
+Swaine et al. claim that typing the program in Typed Racket counters this
+behavior, as they also demonstrate in \cite{swaine_seeing_2012}. It makes
+therefore sense to measure the amount of parallel work and compare the typed and
+the untyped implementation of the Michael-Scott Queue.
+
+Fig. \ref{fig:untyped-visualizer} shows how the untyped implementation does not
+perform work in parallel at all. Instead, each thread pauses entirely as soon as
+another thread touches the queue.
+
+\begin{figure}[t]
+  \begin{center}
+   % \includegraphics[bb=0 0 892 528, scale=0.4]{images/futures_visualizer_typed.png}
+  \end{center}
+  \caption{Screenshot from the Future Visualizer showing the execution timeline
+    for the typed Michael-Scott Queue implementation.}
+  \label{fig:typed-visualizer}
+\end{figure}
+
 \section{Conclusion and Future Work}
 
 \bibliographystyle{plain}
