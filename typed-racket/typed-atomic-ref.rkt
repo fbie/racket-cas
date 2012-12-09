@@ -6,6 +6,9 @@
                [fsemaphore-wait (FSemaphore -> Void)]
                [fsemaphore-post (FSemaphore -> Void)])
 
+(require/typed typed/racket
+               [call-with-semaphore (All (A) Semaphore ( -> A) -> A)])
+
 (struct: (T) atomic ([sem : Semaphore] [fsem : FSemaphore] [ref : T]) #:mutable)
 (define-type (Atomic Semaphore FSemaphore T) (atomic T))
 (define-type (AtomicRef T) (Atomic Semaphore FSemaphore T))
@@ -26,9 +29,7 @@
       success
     )
   (fsemaphore-wait (atomic-fsem ref))
-  (semaphore-wait (atomic-sem ref))
-  (let ([res (cas)])
-    (semaphore-post (atomic-sem ref))
+  (let ([res (call-with-semaphore (atomic-sem ref) cas)])
     (fsemaphore-post (atomic-fsem ref))
     res)
   )
