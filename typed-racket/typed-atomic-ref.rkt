@@ -6,16 +6,16 @@
                [fsemaphore-wait (FSemaphore -> Void)]
                [fsemaphore-post (FSemaphore -> Void)])
 
-(struct: (A) atomic ([sem : Semaphore] [fsem : FSemaphore] [ref : A]) #:mutable)
-(define-type (Atomic Semaphore FSemaphore A) (atomic A))
-(define-type (AtomicRef A) (Atomic Semaphore FSemaphore A))
+(struct: (T) atomic ([sem : Semaphore] [fsem : FSemaphore] [ref : T]) #:mutable)
+(define-type (Atomic Semaphore FSemaphore T) (atomic T))
+(define-type (AtomicRef T) (Atomic Semaphore FSemaphore T))
 
-(: make-atomic (All (A) A -> (AtomicRef A)))
+(: make-atomic (All (T) T -> (AtomicRef T)))
 (define (make-atomic ref)
   (atomic (make-semaphore 1) (make-fsemaphore 1) ref)
   )
 
-(: CAS (All (A) (AtomicRef (U Void A)) (U Void A) (U Void A) -> Boolean))
+(: CAS (All (T) (AtomicRef (U Void T)) (U Void T) (U Void T) -> Boolean))
 (define (CAS ref exp new)
   (: cas ( -> Boolean))
   (define (cas)
