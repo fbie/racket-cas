@@ -71,4 +71,5 @@
  make-msq
  enqueue
  dequeue
- size)
+ size
+ MS-Queue)
