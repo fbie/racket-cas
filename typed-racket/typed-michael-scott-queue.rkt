@@ -3,9 +3,10 @@
 (require "typed-atomic-ref.rkt")
 
 ;; the node type of which the queue actually consists
-(struct: node ([value : (U Void Any)] [next : (AtomicRef (U Void node))]))
+(define-type Node node)
+(struct: node ([value : (U Void Any)] [next : (AtomicRef (U Void Node))]))
 
-(: len (All (A) (U node Void) -> Integer))
+(: len ((U Node Void) -> Integer))
 (define (len qn)
   (if (not (equal? qn (void)))
       (add1 (len (atomic-ref (node-next (cast qn node)))))
@@ -13,35 +14,36 @@
   )
 
 ;; a container type for the linked list
-(struct: msq ([head : (AtomicRef node)] [tail : (AtomicRef node)]))
+(define-type MS-Queue msq)
+(struct: msq ([head : (AtomicRef node)] [tail : (AtomicRef Node)]))
 
-(: make-msq (-> msq))
+(: make-msq (-> MS-Queue))
 (define (make-msq)
   (let ([head (node (void) (make-atomic (void)))])
     (msq (make-atomic head) (make-atomic head))
     )
   )
 
-(: enqueue (Any msq -> Void))
+(: enqueue (Any MS-Queue -> Void))
 (define (enqueue value q)
   (: try ( -> Void))
   (define (try)
     (let* [(node (node value (make-atomic (void))))
-           (tail (msq-tail q))
-           (next (atomic-ref (node-next (atomic-ref tail))))]
+           (tail (atomic-ref (msq-tail q)))
+           (next (atomic-ref (node-next tail)))]
       (if (equal? tail (msq-tail q))
         (if (equal? next (void))
-          (if (CAS (node-next (atomic-ref tail)) next node)
-              (let ([a (CAS (msq-tail q) (atomic-ref tail) node)])
+          (if (CAS (node-next tail) next node)
+              (let ([a (CAS (msq-tail q) tail node)])
                 (void))
-              (let ([a (CAS (msq-tail q) (atomic-ref tail) next)])
+              (let ([a (CAS (msq-tail q) tail next)])
                 (try)))
           (try))
         (try))))
   (try)
   )
 
-(: dequeue (msq -> Any))
+(: dequeue (MS-Queue -> Any))
 (define (dequeue q)
   (: try (-> (U Void Any)))
   (define (try)
@@ -61,7 +63,7 @@
   (try)
   )
 
-(: size (msq -> Integer))
+(: size (MS-Queue -> Integer))
 (define (size q)
   (len (atomic-ref (node-next (atomic-ref (msq-head q)))))
   )
