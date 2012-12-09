@@ -230,8 +230,13 @@ step is great in comparison to the original proposed implementation.
 
 \subsection{Typed Version}
 
-
-
+The first observation is that \emph{while} is not compatible with Typed Racket
+and the argument of code readability does not hold anymore. The second
+observation is that, as the \emph{msq} struct is not initialized with any value
+but \emph{void}, it cannot be polymorphic but it will hold values of type
+\emph{Any}. This could be changed by allowing an initial value for the queue,
+which would be set to the tail position of the queue while head remains a dummy
+\emph{node}.
 
 \section{Discussion}
 
