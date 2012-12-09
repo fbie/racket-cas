@@ -37,7 +37,9 @@
   captionpos=b,
   keywordstyle=\color{blue}, commentstyle=\color{dkgreen},
   stringstyle=\color{mauve},
-  frame=single
+  frame=single,
+  breaklines=true,
+  breakatwhitespace=true
 }
 
 \makeatother
@@ -53,13 +55,17 @@
 \maketitle
 
 \begin{abstract}
-This will be the abstract
+This project report for ``Programming Languages Seminar'', autumn 2012 at ITU,
+is concerned with the difficulties of implementing the Michael-Scott Queue in
+Racket and Typed Racket. The report shows the implementations in detail, talks
+about issues in typing the code and outlines weaknesses in a software CAS approach.
 
 \end{abstract}
 \newpage
 
 \tableofcontents{}
 \newpage
+
 
 \section{Introduction and Motivation}
 
@@ -95,9 +101,10 @@ of each data structure I implemented over the course of the project.
 
 
 \subsection{Compare-And-Swap}
+\label{subsec:cas}
 
 \begin{figure}[t]
-  \lstinputlisting[linerange={1-27}]{../racket/atomic-ref.rkt}
+  \lstinputlisting[linerange={1-29}]{../racket/atomic-ref.rkt}
   \caption{Untyped code for \emph{atomic}.}
   \label{fig:atomic-untyped}
 \end{figure}
@@ -149,15 +156,15 @@ on \emph{atomic}
 
 \end{itemize}
 
+
 \subsection{Michael-Scott Queue}
 
 \begin{figure}[t]
-  \lstinputlisting[linerange={37-53}]{../racket/michael-scott-queue.rkt}
+  \lstinputlisting[linerange={37-54}]{../racket/michael-scott-queue.rkt}
   \caption{Untyped implementation of \textsc{Dequeue} of the Michael-Scott
     Queue.}
   \label{fig:msq-dequeue-untyped}
 \end{figure}
-
 
 The implementation of the non-blocking Michael-Scott queue
 \cite{michael_simple_1996} is based on the re-vised pseudo code of their
@@ -200,8 +207,8 @@ Fig. \ref{fig:msq-enqueue-untyped} for the implementation).
   \label{fig:msq-enqueue-untyped}
 \end{figure}
 
-\subsection{Michael-Scott Queue Variant}
 
+\subsection{Michael-Scott Queue Variant}
 
 \begin{figure}[t]
   \lstinputlisting[linerange={23-43}]{../racket/michael-scott-queue-var.rkt}
@@ -229,14 +236,32 @@ step is great in comparison to the original proposed implementation.
 
 
 \subsection{Typed Version}
+\label{subsec:typed}
+
+\begin{figure}[t]
+  \lstinputlisting[linerange={26-43}]{../typed-racket/typed-michael-scott-queue.rkt}
+  \caption{Typed implementation of \textsc{Enqueue}.}
+  \label{fig:typed-enqueue}
+\end{figure}
+
+For the sake of staying within the scope of this project, only the re-vised Michael-Scott
+Queue was translated into typed code.
 
 The first observation is that \emph{while} is not compatible with Typed Racket
-and the argument of code readability does not hold anymore. The second
-observation is that, as the \emph{msq} struct is not initialized with any value
-but \emph{void}, it cannot be polymorphic but it will hold values of type
-\emph{Any}. This could be changed by allowing an initial value for the queue,
-which would be set to the tail position of the queue while head remains a dummy
-\emph{node}.
+and the argument of code readability does not hold anymore. Another issue with
+this is however that the current implementation of \textsc{Enqueue} is now using
+way more space, in regard to how many attempts to enqueue fail, as some calls to
+CAS need to be bound to local variables in order to be able to execute them
+before a succeeding recursive call to \emph{try} (see
+Fig. \ref{fig:typed-enqueue} for the actual implementation).
+
+The second observation is that, as the \emph{msq} struct is not initialized with
+any value but \emph{void}, it cannot be polymorphic but it will hold values of
+type \emph{Any}. This could be changed by allowing an initial value for the
+queue, which would be set to the tail position of the queue while head remains a
+dummy \emph{node}. Also, this makes the typing easier, though lacking possibly
+vital information.
+
 
 \section{Discussion}
 
@@ -245,7 +270,8 @@ which would be set to the tail position of the queue while head remains a dummy
     \includegraphics[bb=0 0 892 528, scale=0.4]{images/futures_visualizer_untyped.png}
   \end{center}
   \caption{Screenshot from the Future Visualizer showing the execution timeline
-    for the untyped Michael-Scott Queue implementation.}
+    for the untyped Michael-Scott Queue implementation. Blue points indicate a
+    blocking operation.}
   \label{fig:untyped-visualizer}
 \end{figure}
 
@@ -253,10 +279,9 @@ According to Swaine et al. \cite{swaine_seeing_2012}, programms written in Typed
 Racket have advantages over programms written in plain Racket, when it comes to
 parallelism. When a parallel program is compiled, the Racket compiler determines
 the safety of the code for parallel execution. If the program does not fulfill
-all requirements, a so called ``slow path'' will be triggered\footnote{See
-  \url{} for details.}, leading
-eventually towards sequential execution with the additional overhead paid for
-managing parallel processes on top.
+all requirements, a so called ``slow path'' will be triggered
+\cite{swaine_seeing_2012}, leading eventually towards sequential execution with
+the additional overhead paid for managing parallel processes on top.
 
 Swaine et al. claim that typing the program in Typed Racket counters this
 behavior, as they also demonstrate in \cite{swaine_seeing_2012}. It makes
@@ -267,19 +292,71 @@ Fig. \ref{fig:untyped-visualizer} shows how the untyped implementation does not
 perform work in parallel at all. Instead, each thread pauses entirely as soon as
 another thread touches the queue.
 
-\begin{figure}[t]
-  \begin{center}
-   % \includegraphics[bb=0 0 892 528, scale=0.4]{images/futures_visualizer_typed.png}
-  \end{center}
-  \caption{Screenshot from the Future Visualizer showing the execution timeline
-    for the typed Michael-Scott Queue implementation.}
-  \label{fig:typed-visualizer}
-\end{figure}
+However, the current typed implementation of the Michael-Scott Queue does not
+trigger a ``fast path'' in the Racket compiler. The performance visualizer still
+shows 750 ``Blocking'' items for a test with four parallel processes where each
+enqueues 250 randomly chosen integers into the same Michael-Scott Queue
+instance.
+
+It is likely, that the compiler detects the use of \emph{fsemaphore} objects,
+which guard the CAS on \emph{atomic} (see Sec. \ref{subsec:cas}). Since the
+Racket compiler regards the main thread not as a parallel thread (even though
+it is), it is reasonable to assume that the 1000 occurrences of
+\emph{fsemaphore} minus the share of the main thread give the 750 ``Blocking''
+items as shown by the visualizer.
+
+It is also possible that this behavior is due to lacking type information, as suggested
+in Sec. \ref{subsec:typed}. As Typed Racket and Racket are still undergoing many
+changes and are topic of research interest, it was not possible to gain much
+information on these corner cases during the duration of this project.
+
+Other tweaks to the code to make the compiler choose a ``fast path'' as
+described by SWaine et al. \cite{swaine_seeing_2012} are unfortunately not
+adaptable to our case: since they deal with fast fourier transformation, their
+approaches target arithmetic operations on and memory allocation of numbers. Since
+the Michael-Scott Queue is polymorphic, it is not possible to adapt their
+proposed changed to the current implementation.
+
+%\begin{figure}[t]
+%  \begin{center}
+%    \includegraphics[bb=0 0 892 528, scale=0.4]{images/futures_visualizer_typed.png}
+%  \end{center}
+%  \caption{Screenshot from the Future Visualizer showing the execution timeline
+%    for the typed Michael-Scott Queue implementation.}
+%  \label{fig:typed-visualizer}
+%\end{figure}
+
 
 \section{Conclusion and Future Work}
 
+Over the course of this report, we saw that it is very well possible to write a
+generally working implementation of the Michael-Scott Queuein Racket as well as
+Typed Racket. It became, however, obvious, that true parallelism in Racket is
+not as trivial to achieve, because of compiler features that are designed to
+stop the programmer from executing possibly error prone code in parallel.
+
+As the reason for this is supposedly the frequent use of semaphores to ensure
+correctness on CAS operations, it may be a good idea to add CAS instead as a
+built-in function to the Racket compiler. This could then circumvent triggering
+``slow paths'' in the execution of parallel programs in Racket and therefore
+provide programmers with the possibility to write programmes with fine-grained
+parallelism.
+
+It is still possible, that parallel execution is only prevented by too broad
+type annotations. Since the project duration is limited, this is not featured
+here, but considered for future work.
+
 \bibliographystyle{plain}
 \bibliography{SPLG.bib}
+
+\begin{appendix}
+
+  \section{Source Code}
+  
+  All implemented source code regarding this project, including unit-tests for
+  classical and parallel threading, can be found at \url{https://github.com/fbie/racket-cas}.
+
+\end{appendix}
 
 \end{document}
 
